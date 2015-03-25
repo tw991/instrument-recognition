@@ -9,7 +9,7 @@ save = '.'
 maxEpoch = 400
 
 optimState = {
-   learningRate = 0.05,
+   learningRate = 0.07,
    momentum = 0.95,
    learningRateDecay = 0.00001
 }
@@ -148,7 +148,7 @@ function test()
    print('\n Test Accuracy %:')
    print(correct / testData.size / noutputs * 100)
    print("\n==> exact testing accuracy %")
-   print(exact_correct)
+   print(exact_correct/testData.size * 100)
    print('\ntest loss:')
    print(tloss / testData.size)
 
