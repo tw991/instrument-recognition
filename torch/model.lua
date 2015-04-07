@@ -2,7 +2,7 @@ require 'torch'   -- torch
 require 'nn'      -- provides all sorts of trainable modules/layers
 require 'cunn'
 
-noutputs = 82
+noutputs = 16
 batchSize = 4
 
 -- input dimensions
