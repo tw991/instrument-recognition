@@ -9,9 +9,9 @@ save = '.'
 maxEpoch = 400
 
 optimState = {
-   learningRate = 0.05,
+   learningRate = 0.1,
    momentum = 0.95,
-   learningRateDecay = 0.00001
+   learningRateDecay = 0.1
 }
 optimMethod = optim.sgd
 

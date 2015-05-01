@@ -14,6 +14,13 @@ torch.setdefaulttensortype('torch.FloatTensor')
 if opt.machine == 'k80' then 
   cutorch.setDevice(3)
 end
+
+optimState = {
+    learningRate = 0.1,
+    momentum = 0.95,
+    learningRateDecay = 2,
+    max_epoch = 20
+}
 print '==> executing all'
 
 dofile 'data.lua'
@@ -24,6 +31,9 @@ dofile 'train.lua'
 epoch = 1
 
 while epoch < maxEpoch do
+   if epoch % optimState.max_epoch == 0 then
+      optimState.learningRate = optimState.learningRate / optimState.learningRateDecay
+   end
    train()
    collectgarbage()
    test()

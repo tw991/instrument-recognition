@@ -8,13 +8,6 @@ print '==> configuring optimizer'
 save = '.'
 maxEpoch = 400
 
-optimState = {
-   learningRate = 0.07,
-   momentum = 0.95,
-   learningRateDecay = 0.00001
-}
-optimMethod = optim.sgd
-
 -- Log results to files
 trainLogger = optim.Logger(paths.concat(save, 'train.log'))
 testLogger = optim.Logger(paths.concat(save, 'test.log'))
@@ -68,10 +61,9 @@ function train()
       local out_predict = output:ge(0.5)
       tloss = tloss + loss
       correct = correct + output:ge(0.5):eq(targets:ge(0.5)):sum()
-      exact_correct = exact_correct + (out_predict:eq(targets:ge(0.5)):sum(2)):ge(82):sum()
+      exact_correct = exact_correct + (out_predict:eq(targets:ge(0.5)):sum(2)):ge(11):sum()
       model:backward(inputs, criterion:backward(output, targets))
-      clr = optimState.learningRate * (1-optimState.learningRateDecay)^epoch
-      parameters:add(-clr, gradParameters)
+      parameters:add(-optimState.learningRate, gradParameters)
       collectgarbage()
     end
 
@@ -90,10 +82,10 @@ function train()
    trainLogger:add{['% class accuracy (train set)'] = correct / trainData.size / noutputs * 100, ['training loss'] = tloss / trainData.size}
 
    -- save/log current net
-   local filename = paths.concat(save, 'model.net')
+   local filename = paths.concat(save, 'model_large.net')
    os.execute('mkdir -p ' .. sys.dirname(filename))
    print('==> saving model to '..filename)
-   if opt.save == 'True' then
+   if opt.save == 'True' and epoch %20 == 0 then
      torch.save(filename, model)
    end
    -- next epoch
@@ -116,6 +108,9 @@ function test()
    local tloss = 0
    local correct = 0
    local exact_correct = 0 
+   local n_tp = 0 --true positive
+   local n_pred = 0 --number of prediction
+   local n_pos = 0 --number of target 
    local testBatchSize = 8
       -- disp progress
    for t = 1,testData.size,testBatchSize do
@@ -132,9 +127,12 @@ function test()
       local pred = model:forward(input)
       local loss = criterion:forward(pred, target)
       local out_predict = pred:ge(0.5)
+      n_tp = n_tp + pred:ge(0.5):cmul(target:ge(0.5)):sum()
+      n_pred = n_pred + pred:ge(0.5):sum()
+      n_pos = n_pos + target:ge(0.5):sum()
       tloss = tloss + loss
       correct = correct + pred:ge(0.5):eq(target:ge(0.5)):sum()
-      exact_correct = exact_correct + (out_predict:eq(target:ge(0.5)):sum(2)):ge(82):sum()
+      exact_correct = exact_correct + (out_predict:eq(target:ge(0.5)):sum(2)):ge(11):sum()
       -- print("\n" .. target .. "\n")
 
    end
@@ -149,6 +147,12 @@ function test()
    print(correct / testData.size / noutputs * 100)
    print("\n==> exact testing accuracy %")
    print(exact_correct/testData.size * 100)
+   print("\n==> Test precision")
+   print(n_tp/ n_pred)
+   print("\n==> Test recall")
+   print(n_tp / n_pos)
+   print("\n==> Test F micro")
+   print(2 * n_tp / (n_pred + n_pos))
    print('\ntest loss:')
    print(tloss / testData.size)
 
